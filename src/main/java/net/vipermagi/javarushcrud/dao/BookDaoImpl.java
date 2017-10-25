@@ -25,8 +25,29 @@ public class BookDaoImpl implements BookDao {
     }
 
     public void updateBook(Book book) {
-        Session session = sessionFactory.getCurrentSession();
-        session.update(book);
+//        Session session = sessionFactory.getCurrentSession();
+
+        //Бизнес-требование: при редактировании может быть 2 варианта поведение:
+
+        //1. Книгу прочитали, и тогда изменяется только поле readAlready, и только, если оно
+        //   было false. Значения поля должно стать true.
+        Book oldBook = getBookById(book.getId());
+        if(oldBook.isReadAlready() == false && book.isReadAlready() == true) {
+            oldBook.setReadAlready(true);
+        }
+
+        //2. Книгу заменили на новое издание. В этом случае должна быть возможность
+        //   изменить title, description, isbn, printYear. А поле readAlready нужно выставить в
+        //   false. Поле author должно быть неизменяемым с момента создания книги.
+        if(!oldBook.getIsbn().equals(book.getIsbn())) {
+            oldBook.setReadAlready(false);
+            oldBook.setTitle(book.getTitle());
+            oldBook.setDescription(book.getDescription());
+            oldBook.setIsbn(book.getIsbn());
+            oldBook.setPrintYear(book.getPrintYear());
+        }
+
+//        session.update(book);
         logger.info("Book updated. Book details: " + book);
     }
 
